@@ -1,0 +1,51 @@
+{
+  "name": "serverside",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon --exec ts-node src/app.ts",
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write .",
+    "check-types": "tsc --noEmit",
+    "install-types": "npm install --save-dev @types/compression @types/cors @types/express @types/jsonwebtoken @types/bcryptjs @types/multer"
+  },
+  "author": "Belloticyd",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.0",
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "firebase-admin": "^14.1.0",
+    "helmet": "^8.2.0",
+    "http-status-codes": "^2.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.2.0",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/express-rate-limit": "^6.0.2",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.2.0",
+    "@types/node": "^26.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.62.1",
+    "@typescript-eslint/parser": "^8.62.1",
+    "eslint": "^10.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.9.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
