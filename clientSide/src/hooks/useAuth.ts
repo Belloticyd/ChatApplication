@@ -1,11 +1,11 @@
 
 
 
-
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth.store';
 import { authApi } from '../api/auth.api';
+import { socketService } from '../services/socket.service';
 import { toast } from 'react-hot-toast';
 
 export const useAuth = () => {
@@ -36,6 +36,9 @@ export const useAuth = () => {
           const response = await authApi.getProfile();
           setUser(response.user);
           setAuthenticated(true);
+          
+          // Connect Socket.IO after authentication
+          socketService.connect(token);
         } catch (error) {
           logout();
         }
@@ -45,6 +48,19 @@ export const useAuth = () => {
 
     verifyToken();
   }, [token]);
+
+  // Connect/disconnect socket based on auth state
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      socketService.connect(token);
+    } else {
+      socketService.disconnect();
+    }
+
+    return () => {
+      socketService.disconnect();
+    };
+  }, [isAuthenticated, token]);
 
   const sendOTP = async (phoneNumber: string) => {
     try {
@@ -72,6 +88,9 @@ export const useAuth = () => {
       
       localStorage.setItem('user', JSON.stringify(response.user));
       
+      // Connect Socket.IO
+      socketService.connect(response.token);
+      
       toast.success('Welcome! 🎉');
       navigate('/');
       return response;
@@ -88,10 +107,12 @@ export const useAuth = () => {
       if (refreshToken) {
         await authApi.logout(refreshToken);
       }
+      socketService.disconnect();
       logout();
       toast.success('Logged out successfully');
       navigate('/login');
     } catch (error) {
+      socketService.disconnect();
       logout();
       navigate('/login');
     }
