@@ -1,7 +1,6 @@
 
 
 
-
 // serverSide/src/app.ts
 import express from 'express';
 import cors from 'cors';
@@ -14,14 +13,13 @@ import { Server } from 'socket.io';
 
 dotenv.config();
 
+
 // Import routes
 import authRoutes from './routes/auth.routes';
-// import userRoutes from './routes/user.routes';
-// We'll add more routes as we build them
+import userRoutes from './routes/user.routes'; // Add this
 
 // Import socket handlers
 import { setupSocketHandlers } from './sockets';
-
 
 
 const app = express();
@@ -34,9 +32,6 @@ const io = new Server(httpServer, {
     methods: ['GET', 'POST'],
     credentials: true,
   },
-  // For production, you might want to add:
-  // pingTimeout: 60000,
-  // pingInterval: 25000,
 });
 
 // Middleware
@@ -60,9 +55,7 @@ app.get('/health', (_req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
-// app.use('/api/chats', chatRoutes);
-// app.use('/api/messages', messageRoutes);
+app.use('/api/users', userRoutes); // Add this
 
 // Setup Socket.IO handlers
 setupSocketHandlers(io);

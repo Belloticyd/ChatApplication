@@ -4,6 +4,7 @@
 
 import { db } from '../config/firebase.config';
 
+
 const USERS_COLLECTION = 'users';
 
 export interface User {
@@ -65,6 +66,7 @@ export class UserService {
 
     return usersSnapshot.docs[0].data() as User;
   }
+
 
   // Search users by phone number or name
   static async searchUsers(query: string): Promise<User[]> {
@@ -132,7 +134,18 @@ export class UserService {
         results.push(doc.data() as User);
       });
     }
+
+    
     
     return results;
   }
+
+  
+
+  // Get all users
+  static async getAllUsers(): Promise<User[]> {
+    const snapshot = await db.collection(USERS_COLLECTION).get();
+    return snapshot.docs.map(doc => doc.data() as User);
+  }
+
 }

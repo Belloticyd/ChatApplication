@@ -1,27 +1,70 @@
 
 
 
-import React, { useState } from 'react';
+
+// clientSide/src/pages/HomePage.tsx
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useSocket } from '../hooks/useSocket';
+import { usersApi, User } from '../api/users.api';
 import { ChatWindow } from '../components/chat/ChatWindow';
 import { Button } from '../components/ui/Button';
+import { toast } from 'react-hot-toast';
 
 export const HomePage: React.FC = () => {
   const { user, logout } = useAuth();
   const { isConnected, onlineUsers } = useSocket();
+  const [users, setUsers] = useState<User[]>([]);
   const [selectedChat, setSelectedChat] = useState<{ id: string; name: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock contacts - in real app, these come from your contacts list
-  const contacts = [
-    { id: 'user2', name: 'John Doe', phone: '+1234567890' },
-    { id: 'user3', name: 'Jane Smith', phone: '+1987654321' },
-  ];
+  // Load users on mount
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      setIsLoading(true);
+      const response = await usersApi.getAllUsers();
+      setUsers(response.users);
+    } catch (error) {
+      toast.error('Failed to load users');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    
+    if (!query.trim()) {
+      await loadUsers();
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await usersApi.searchUsers(query);
+      setUsers(response.users);
+    } catch (error) {
+      toast.error('Failed to search users');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredUsers = users.filter(u => 
+    u.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.phoneNumber.includes(searchQuery)
+  );
 
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-200">
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+        {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -41,30 +84,62 @@ export const HomePage: React.FC = () => {
             <span className="ml-2 text-sm text-gray-600">
               {isConnected ? 'Connected' : 'Disconnected'}
             </span>
+            <span className="ml-4 text-sm text-gray-600">
+              {onlineUsers.length} online
+            </span>
           </div>
         </div>
 
-        {/* Contacts List */}
-        <div className="overflow-y-auto h-[calc(100vh-120px)]">
-          {contacts.map((contact) => (
-            <div
-              key={contact.id}
-              onClick={() => setSelectedChat({ id: contact.id, name: contact.name })}
-              className={`px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 ${
-                selectedChat?.id === contact.id ? 'bg-gray-50' : ''
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">{contact.name}</h3>
-                  <p className="text-sm text-gray-500">{contact.phone}</p>
-                </div>
-                {onlineUsers.includes(contact.id) && (
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                )}
-              </div>
+        {/* Search Bar */}
+        <div className="p-3 border-b border-gray-200">
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          />
+        </div>
+
+        {/* Users List */}
+        <div className="flex-1 overflow-y-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
             </div>
-          ))}
+          ) : filteredUsers.length === 0 ? (
+            <div className="flex items-center justify-center h-32 text-gray-500">
+              {searchQuery ? 'No users found' : 'No other users yet'}
+            </div>
+          ) : (
+            filteredUsers.map((contact) => (
+              <div
+                key={contact.uid}
+                onClick={() => setSelectedChat({ id: contact.uid, name: contact.displayName })}
+                className={`px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 ${
+                  selectedChat?.id === contact.uid ? 'bg-gray-50' : ''
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">{contact.displayName}</h3>
+                    <p className="text-sm text-gray-500">{contact.phoneNumber}</p>
+                    {contact.status && (
+                      <p className="text-xs text-gray-400 truncate">{contact.status}</p>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end">
+                    {onlineUsers.includes(contact.uid) && (
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    )}
+                    <span className="text-xs text-gray-400 mt-1">
+                      {onlineUsers.includes(contact.uid) ? 'Online' : 'Offline'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
