@@ -37,7 +37,7 @@ export const setupSocketHandlers = (io: Server) => {
       next(new Error('Authentication failed'));
     }
   });
-
+ 
   io.on('connection', (socket: Socket) => {
     const userId = socket.data.userId;
     

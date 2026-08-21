@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useSocket } from '../hooks/useSocket';
-import { usersApi, User } from '../api/users.api';
+import type { usersApi, User } from '../api/users.api';
 import { ChatWindow } from '../components/chat/ChatWindow';
 import { Button } from '../components/ui/Button';
 import { toast } from 'react-hot-toast';
